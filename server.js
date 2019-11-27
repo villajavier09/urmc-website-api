@@ -34,7 +34,7 @@ app.route("/")
       }
     });
 
-    const mailText = `Hello URMC, \nI'm ${request.body.name} and I'm a ${request.body.position} at ${request.body.company}. We are interested in sponsoring URMC! Please reach out to me at ${request.body.email}. Looking forward to speaking with you!\n\nCheers!\n\n- ${request.body.name}`;
+    const mailText = `Hello URMC,\n\nI'm ${request.body.name} and I'm a ${request.body.position} at ${request.body.company}. We are interested in sponsoring URMC! Please reach out to me at ${request.body.email}. Looking forward to speaking with you!\n\nCheers!\n\n- ${request.body.name}`;
 
     const mailOptions = {
       from: process.env.EMAIL_ACCOUNT,
