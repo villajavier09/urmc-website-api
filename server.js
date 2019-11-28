@@ -38,7 +38,7 @@ app.route("/")
 
     const mailOptions = {
       from: process.env.EMAIL_ACCOUNT,
-      to: 'ramiabdou98@gmail.com',
+      to: 'urmc@cornell.edu',
       subject: `Interest in URMC Sponsorship from ${request.body.company}`,
       text: mailText
     };
