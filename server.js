@@ -6,7 +6,6 @@ const path = require('path');
 const cors = require('cors');
 
 const BoardMember = require('./models/boardMember');
-const boardMembers = require('./boardMembers');
 
 require('dotenv').config({ path: path.join(__dirname + '/.env') });
 
