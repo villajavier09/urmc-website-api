@@ -5,6 +5,9 @@ const nodemailer = require('nodemailer');
 const path = require('path');
 const cors = require('cors');
 
+const BoardMember = require('./models/boardMember');
+const boardMembers = require('./boardMembers');
+
 require('dotenv').config({ path: path.join(__dirname + '/.env') });
 
 /* Server Initialization */
@@ -23,6 +26,7 @@ let corsOption = {
 };
 
 app.use(cors(corsOption));
+
 
 app.route("/")
   .post((request, response) => {
@@ -48,6 +52,25 @@ app.route("/")
       else response.send(info.response);
     });
   });
+
+app.route("/board-members")
+  .get((request, response) => {
+    // BoardMember.find((error, members) => {
+    //   response.send(members);
+    // });
+
+    for (let member of boardMembers) {
+      let boardMember = new BoardMember(member);
+
+      BoardMember.save().then((result) => console.log(result));
+    }
+  })
+
+  .post((request, response) => {
+
+  });
+
+
 
 const port = process.env.PORT || 8080;
 
