@@ -62,7 +62,7 @@ app.route("/board-members")
     for (let member of boardMembers) {
       let boardMember = new BoardMember(member);
 
-      BoardMember.save().then((result) => console.log(result));
+      boardMember.save().then((result) => console.log(result));
     }
   })
 
