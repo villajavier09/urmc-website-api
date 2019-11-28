@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 const config = require('../config').getConfig(process.env.NODE_ENV);
 
-console.log(config);
-
 mongoose.connect(config.database.DB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
 const boardMemberSchema = new mongoose.Schema({

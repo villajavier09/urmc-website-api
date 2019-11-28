@@ -55,22 +55,14 @@ app.route("/")
 
 app.route("/board-members")
   .get((request, response) => {
-    // BoardMember.find((error, members) => {
-    //   response.send(members);
-    // });
-
-    for (let member of boardMembers) {
-      let boardMember = new BoardMember(member);
-
-      boardMember.save().then((result) => console.log(result));
-    }
+    BoardMember.find((error, members) => {
+      response.send(members);
+    });
   })
 
   .post((request, response) => {
 
   });
-
-
 
 const port = process.env.PORT || 8080;
 
