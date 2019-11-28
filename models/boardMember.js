@@ -29,7 +29,8 @@ const boardMemberSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  askMe: [String]
+  askMe: [String],
+  netId: String
 });
 
 const BoardMember = mongoose.model('BoardMember', boardMemberSchema);
