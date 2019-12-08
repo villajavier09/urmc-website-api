@@ -4,8 +4,12 @@ const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const path = require('path');
 const cors = require('cors');
+const session = require('express-session');
+const uuid = require('uuid/v4');
 
 const BoardMember = require('./models/boardMember');
+const { generateToken, sendToken, findOrCreateUser } =
+  require('./auth');
 
 require('dotenv').config({ path: path.join(__dirname + '/.env') });
 
@@ -16,6 +20,15 @@ const server = require('http').Server(app);
 /* Middleware Functionality */
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+
+app.use(session({
+  genid: (request) => {
+    return uuid() // use UUIDs for session IDs
+  },
+  secret: 'secret',
+  resave: false,
+  saveUninitialized: true
+}));
 
 let corsOption = {
   credentials: true,
@@ -52,6 +65,17 @@ app.route("/")
     });
   });
 
+app.route("/board-members/:id")
+  .get((request, response) => {
+    console.log("GOT IT")
+    console.log(request.params);
+  })
+  .post((request, response) => {
+    console.log("GOT IT")
+    console.log(request.params);
+    console.log(request.body);
+  });
+
 app.route("/board-members")
   .get((request, response) => {
     BoardMember.find((error, members) => {
@@ -62,6 +86,14 @@ app.route("/board-members")
   .post((request, response) => {
 
   });
+
+app.route('/google/auth')
+  .post(async (request, response, next) => {
+    request.session.accessToken = request.body.access_token;
+    request.user = request.body.profile;
+
+    next();
+  }, generateToken, sendToken);
 
 const port = process.env.PORT || 8080;
 
