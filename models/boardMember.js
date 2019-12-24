@@ -16,11 +16,9 @@ const boardMemberSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
-  socials: {
-    I: String,
-    F: String,
-    L: String
-  },
+  instagram: String,
+  facebook: String,
+  linkedIn: String,
   position: {
     type: String,
     required: true
@@ -30,7 +28,8 @@ const boardMemberSchema = new mongoose.Schema({
     required: true
   },
   askMe: [String],
-  netId: String
+  netId: String,
+  picture: String
 });
 
 const BoardMember = mongoose.model('BoardMember', boardMemberSchema);

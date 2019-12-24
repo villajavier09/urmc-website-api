@@ -6,6 +6,9 @@ const path = require('path');
 const cors = require('cors');
 const session = require('express-session');
 const uuid = require('uuid/v4');
+const mongoose = require('mongoose');
+const multer = require('multer');
+const fs = require('fs');
 
 const BoardMember = require('./models/boardMember');
 const { generateToken, sendToken, findOrCreateUser } =
@@ -16,6 +19,12 @@ require('dotenv').config({ path: path.join(__dirname + '/.env') });
 /* Server Initialization */
 const app = express();
 const server = require('http').Server(app);
+
+app.use('/public', express.static(path.join(__dirname, 'public')))
+
+const upload = multer({
+  dest: './public/uploads/' // This saves our files into a directory called "uploads".
+});
 
 /* Middleware Functionality */
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -38,7 +47,6 @@ let corsOption = {
 };
 
 app.use(cors(corsOption));
-
 
 app.route("/")
   .post((request, response) => {
@@ -65,26 +73,69 @@ app.route("/")
     });
   });
 
-app.route("/board-members/:id")
-  .get((request, response) => {
-    console.log("GOT IT")
-    console.log(request.params);
-  })
-  .post((request, response) => {
-    console.log("GOT IT")
-    console.log(request.params);
-    console.log(request.body);
-  });
-
 app.route("/board-members")
   .get((request, response) => {
     BoardMember.find((error, members) => {
+      console.log("RECEIVED FULL MEMBERS FETCH");
       response.send(members);
     });
   })
 
-  .post((request, response) => {
+  .post(upload.single('profilePicture'), (request, response) => {
+    console.log(request.file)
+    BoardMember.create(request.body).then((member) => {
+      console.log(request.body);
+      response.send(member);
+    })
+  })
 
+  .delete(async (request, response) => {
+    let fileNames = []; // Names of image files.
+
+    for (let memberID of request.body.memberIDs) {
+      let member = await BoardMember.findById(memberID);
+      if (member.picture) fileNames.push(member.picture);
+    }
+
+    console.log(fileNames)
+
+    BoardMember.deleteMany({ _id: request.body.memberIDs })
+      .then(async (message) => {
+
+        for (let fileName of fileNames) {
+          deleteImage(fileName);
+        }
+
+        response.send(message);
+      });
+  });
+
+const deleteImage = (fileName) => {
+  fs.unlinkSync(`./public/uploads/${fileName}`);
+}
+
+app.route("/board-members/:id")
+  .put((request, response) => {
+    BoardMember.update({ _id: mongoose.Types.ObjectId(request.params.id) }, request.body)
+      .then(() => response.send("Update was successful."))
+      .catch(() => response.send("Update not successful."));
+  });
+
+app.route("/board-members/:id/profile-picture")
+  .put(upload.single('imageData'), async (request, response) => {
+    if (!request.file) return;
+
+    let userID = request.params.id;
+    let member = await BoardMember.findById(userID);
+    let prevFileName = member.picture;
+
+    BoardMember.update({ _id: mongoose.Types.ObjectId(userID) },
+      { picture: request.file.filename })
+      .then(() => {
+        deleteImage(prevFileName);
+        response.send("Upload was successful.")
+      })
+      .catch(() => response.send("Upload not successful."));
   });
 
 app.route('/google/auth')
