@@ -4,7 +4,7 @@ const path = require("path");
 require('dotenv').config({ path: path.join(__dirname + '/.env') });
 
 const config = {
-  default: {
+  development: {
     database: {
       DB_URL: process.env.LOCAL_DB_URL
     }
@@ -16,8 +16,4 @@ const config = {
   }
 }
 
-const getConfig = (env) => {
-  return config[env] || config.default;
-}
-
-module.exports = { getConfig };
+module.exports = config[process.env.NODE_ENV];

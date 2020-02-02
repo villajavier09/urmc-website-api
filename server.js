@@ -11,8 +11,8 @@ const multer = require('multer');
 const fs = require('fs');
 
 const BoardMember = require('./models/boardMember');
-const { generateToken, sendToken, findOrCreateUser } =
-  require('./auth');
+const PendingBoardMember = require('./models/pendingBoardMember');
+const { generateToken, sendToken } = require('./auth');
 
 require('dotenv').config({ path: path.join(__dirname + '/.env') });
 
@@ -74,17 +74,13 @@ app.route("/")
   });
 
 app.route("/board-members")
-  .get((request, response) => {
-    BoardMember.find((error, members) => {
-      console.log("RECEIVED FULL MEMBERS FETCH");
-      response.send(members);
-    });
+  .get(async (request, response) => {
+    const members = await BoardMember.find();
+    response.send(members);
   })
 
   .post(upload.single('profilePicture'), (request, response) => {
-    console.log(request.file)
     BoardMember.create(request.body).then((member) => {
-      console.log(request.body);
       response.send(member);
     })
   })
@@ -97,8 +93,6 @@ app.route("/board-members")
       if (member.picture) fileNames.push(member.picture);
     }
 
-    console.log(fileNames)
-
     BoardMember.deleteMany({ _id: request.body.memberIDs })
       .then(async (message) => {
 
@@ -108,6 +102,12 @@ app.route("/board-members")
 
         response.send(message);
       });
+  });
+
+app.route('/pending-board-members')
+  .get(async (request, response) => {
+    let pendingMembers = await PendingBoardMember.find();
+    response.send(pendingMembers);
   });
 
 const deleteImage = (fileName) => {

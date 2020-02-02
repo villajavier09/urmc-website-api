@@ -3,7 +3,7 @@ const config = require('../config');
 
 mongoose.connect(config.database.DB_URL, { useNewUrlParser: true, useUnifiedTopology: true });
 
-const boardMemberSchema = new mongoose.Schema({
+const pendingBoardMemberSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true
@@ -32,6 +32,6 @@ const boardMemberSchema = new mongoose.Schema({
   picture: String
 });
 
-const BoardMember = mongoose.model('BoardMember', boardMemberSchema);
+const PendingBoardMember = mongoose.model('PendingBoardMember', pendingBoardMemberSchema);
 
-module.exports = BoardMember;
+module.exports = PendingBoardMember;
