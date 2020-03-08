@@ -7,39 +7,36 @@ const cors = require('cors');
 const session = require('express-session');
 const uuid = require('uuid/v4');
 const mongoose = require('mongoose');
-const multer = require('multer');
 const fs = require('fs');
+const multer = require('multer');
+
+const upload = multer();
 
 const BoardMember = require('./models/boardMember');
 const PendingBoardMember = require('./models/pendingBoardMember');
 const { generateToken, sendToken } = require('./auth');
 
+const AWSService = require('./AWSService');
+
 require('dotenv').config({ path: path.join(__dirname + '/.env') });
 
-/* Server Initialization */
 const app = express();
 const server = require('http').Server(app);
 
 app.use('/public', express.static(path.join(__dirname, 'public')))
-
-const upload = multer({
-  dest: './public/uploads/' // This saves our files into a directory called "uploads".
-});
 
 /* Middleware Functionality */
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(session({
-  genid: (request) => {
-    return uuid() // use UUIDs for session IDs
-  },
+  genid: (request) => { return uuid() },
   secret: 'secret',
   resave: false,
   saveUninitialized: true
 }));
 
-let corsOption = {
+const corsOption = {
   credentials: true,
   exposedHeaders: ['x-auth-token'],
   methods: 'GET, HEAD, PUT, PATCH, POST, DELETE',
@@ -52,10 +49,7 @@ app.route("/")
   .post((request, response) => {
     let transporter = nodemailer.createTransport({
       service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_ACCOUNT,
-        pass: process.env.EMAIL_PASSWORD
-      }
+      auth: { user: process.env.EMAIL_ACCOUNT, pass: process.env.EMAIL_PASSWORD }
     });
 
     const mailText = `Hello URMC,\n\nI'm ${request.body.name} and I'm a ${request.body.position} at ${request.body.company}. We are interested in sponsoring URMC! Please reach out to me at ${request.body.email}. Looking forward to speaking with you!\n\nCheers!\n\n- ${request.body.name}`;
@@ -79,10 +73,9 @@ app.route("/board-members")
     response.send(members);
   })
 
-  .post(upload.single('profilePicture'), (request, response) => {
-    BoardMember.create(request.body).then((member) => {
-      response.send(member);
-    })
+  .post(async (request, response) => {
+    const member = await BoardMember.create(request.body);
+    response.send(member);
   })
 
   .delete(async (request, response) => {
@@ -106,13 +99,9 @@ app.route("/board-members")
 
 app.route('/pending-board-members')
   .get(async (request, response) => {
-    let pendingMembers = await PendingBoardMember.find();
+    const pendingMembers = await PendingBoardMember.find();
     response.send(pendingMembers);
   });
-
-const deleteImage = (fileName) => {
-  fs.unlinkSync(`./public/uploads/${fileName}`);
-}
 
 app.route("/board-members/:id")
   .put((request, response) => {
@@ -123,19 +112,7 @@ app.route("/board-members/:id")
 
 app.route("/board-members/:id/profile-picture")
   .put(upload.single('imageData'), async (request, response) => {
-    if (!request.file) return;
-
-    let userID = request.params.id;
-    let member = await BoardMember.findById(userID);
-    let prevFileName = member.picture;
-
-    BoardMember.update({ _id: mongoose.Types.ObjectId(userID) },
-      { picture: request.file.filename })
-      .then(() => {
-        deleteImage(prevFileName);
-        response.send("Upload was successful.")
-      })
-      .catch(() => response.send("Upload not successful."));
+    const data = await AWSService.uploadResource(request.params.id, request.file);
   });
 
 app.route('/google/auth')

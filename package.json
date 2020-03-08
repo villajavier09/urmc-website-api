@@ -5,6 +5,8 @@
     "start": "nodemon server.js"
   },
   "dependencies": {
+    "aws-sdk": "^2.635.0",
+    "blob": "^0.1.0",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
