@@ -13,6 +13,7 @@ const multer = require('multer');
 const upload = multer();
 
 const BoardMember = require('./models/boardMember');
+const TA = require('./models/taDirectory');
 const PendingBoardMember = require('./models/pendingBoardMember');
 const { generateToken, sendToken } = require('./auth');
 
@@ -97,6 +98,35 @@ app.route("/board-members")
       });
   });
 
+app.route("/tadirectory")
+  .get(async (request, response) => {
+    const members = await TA.find();
+    response.send(members);
+  })
+
+  .post(async (request, response) => {
+    const member = await TA.create(request.body);
+    response.send(member);
+  })
+
+  .delete(async (request, response) => {
+    let fileNames = []; // Names of image files.
+
+    for (let memberID of request.body.memberIDs) {
+      let member = await TA.findById(memberID);
+      if (member.picture) fileNames.push(member.picture);
+    }
+
+    TA.deleteMany({ _id: request.body.memberIDs })
+      .then(async (message) => {
+
+        for (let fileName of fileNames) {
+          deleteImage(fileName);
+        }
+
+        response.send(message);
+      });
+  });
 app.route('/pending-board-members')
   .get(async (request, response) => {
     const pendingMembers = await PendingBoardMember.find();
@@ -110,7 +140,19 @@ app.route("/board-members/:id")
       .catch(() => response.send("Update not successful."));
   });
 
+app.route("/tadirectory/:id")
+  .put((request, response) => {
+    TA.update({ _id: mongoose.Types.ObjectId(request.params.id) }, request.body)
+      .then(() => response.send("Update was successful."))
+      .catch(() => response.send("Update not successful."));
+  });
+
 app.route("/board-members/:id/profile-picture")
+  .put(upload.single('imageData'), async (request, response) => {
+    const data = await AWSService.uploadResource(request.params.id, request.file);
+  });
+
+app.route("/tadirectory/:id/profile-picture")
   .put(upload.single('imageData'), async (request, response) => {
     const data = await AWSService.uploadResource(request.params.id, request.file);
   });
