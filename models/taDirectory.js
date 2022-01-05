@@ -30,6 +30,6 @@ const taSchema = new mongoose.Schema({
   picture: String
 });
 
-const TA = mongoose.model('TA', taSchema);
+const TA = mongoose.model('TA', taSchema, 'tadirectory');
 
 module.exports = TA;
