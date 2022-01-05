@@ -28,8 +28,9 @@ const taSchema = new mongoose.Schema({
   classes: [String],
   netId: String,
   picture: String
-});
+},
+  { collection: 'tadirectory' });
 
-const TA = mongoose.model('TA', taSchema, 'tadirectory');
+const TA = mongoose.model('TA', taSchema);
 
 module.exports = TA;
